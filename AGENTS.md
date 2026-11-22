@@ -28,3 +28,11 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+
+- Dropnest catalogue, pricing, delivery timing and quiz logic live in `src/lib/dropnest.ts` as pure functions; UI reads from it. Why: one source of truth, covered by `src/test/dropnest.test.ts`.
+- Cart, city, view and dialog state live in a client-side context (`src/components/dropnest/store.tsx`) mounted in `__root`; the home page (`DropnestApp.tsx`) and kit pages (`/kits/$kitId`, `KitPage.tsx`) share it and reuse DropnestApp's exported pieces. Why: the cart must survive moving between pages with no backend.
+- Item photos are local images in `src/assets/items/<item-id>.jpg`, mapped by id in `itemPhotos.ts`. Why: one photo per catalogue id, reused on cards, kit pages and the cart.
+- Dates shown to users are computed only inside drawers/dialogs (not SSR'd). Why: avoids server/browser timezone hydration mismatches.
+- Decorative motion is CSS keyframes/utilities in `src/styles.css` plus aria-hidden pieces in `src/components/dropnest/motion.tsx` (no animation library), all disabled under prefers-reduced-motion. Why: keeps the bundle light and accessible, and SSR renders final values.

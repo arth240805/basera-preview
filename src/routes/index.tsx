@@ -1,23 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-// The home route ships no og:image, so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
-export const Route = createFileRoute("/")({
-  component: Index,
-});
+import DropnestApp from "@/components/dropnest/DropnestApp";
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Dropnest — Move-in kits for hostels & PGs | Move in. Done." },
+      {
+        name: "description",
+        content:
+          "One order, one box. Dropnest move-in kits for students and first-time renters in Kota, Pune, Delhi NCR, Bengaluru & Hyderabad. Free hostel delivery, COD available.",
+      },
+      {
+        property: "og:title",
+        content: "Dropnest — Walk into an empty room. Walk out with a home.",
+      },
+      {
+        property: "og:description",
+        content:
+          "Basic, Standard & Premium move-in kits from ₹2,799, delivered to your hostel 24 hours before you arrive.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: DropnestApp,
+});
