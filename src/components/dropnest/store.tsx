@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useMemo, useState, type Context, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
@@ -47,7 +47,12 @@ interface DropnestStore {
   clearCart: () => void;
 }
 
-const Ctx = createContext<DropnestStore | null>(null);
+// Keep one context object across hot reloads; otherwise a reloaded store module
+// creates a new context that the already-mounted provider in __root doesn't supply.
+const CTX_KEY = "__dropnestStoreContext__";
+const ctxHolder = globalThis as unknown as Record<string, Context<DropnestStore | null> | undefined>;
+const Ctx: Context<DropnestStore | null> =
+  ctxHolder[CTX_KEY] ?? (ctxHolder[CTX_KEY] = createContext<DropnestStore | null>(null));
 
 const EMPTY_CART: CartState = { kits: {}, addons: [], extras: {}, items: {} };
 
