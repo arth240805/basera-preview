@@ -482,6 +482,19 @@ export function kitBrandLines(
   });
 }
 
+/** Brand upgrades picked for a kit's items, per one kit, whether or not the kit is in the cart yet. */
+export function kitBrandPicks(cart: CartState, kitId: KitId): { item: KitItem; brand: ItemBrand }[] {
+  return KITS[kitId].items.flatMap((item) => {
+    const brand = selectedBrand(cart, item.id);
+    return brand && brand.upcharge > 0 ? [{ item, brand }] : [];
+  });
+}
+
+/** What one kit costs with the customer's brand picks. */
+export function kitPriceWithBrands(cart: CartState, kitId: KitId): number {
+  return KITS[kitId].price + kitBrandPicks(cart, kitId).reduce((s, p) => s + p.brand.upcharge, 0);
+}
+
 export function kitBrandTotal(cart: CartState, kitId: KitId): number {
   return kitBrandLines(cart, kitId).reduce((s, l) => s + l.amount, 0);
 }

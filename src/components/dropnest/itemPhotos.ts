@@ -1,4 +1,5 @@
 // Product photos for every kit item and add-on, keyed by item / add-on id.
+import { selectedBrand, type CartState } from "@/lib/dropnest";
 import adhesiveHooks from "@/assets/items/adhesive-hooks.jpg";
 import bedsheet from "@/assets/items/bedsheet.jpg";
 import bucketMug from "@/assets/items/bucket-mug.jpg";
@@ -57,3 +58,27 @@ export const ITEM_PHOTOS: Record<string, string> = {
   "wall-clock": wallClock,
   "extra-bedsheet": bedsheet,
 };
+
+// One photo per brand option, named "<item-id>--<brand-id>.jpg". The included
+// (first) brand of each item uses the item's main photo above.
+const BRAND_FILES = import.meta.glob<string>("../../assets/items/brands/*.jpg", {
+  eager: true,
+  import: "default",
+});
+
+export const BRAND_PHOTOS: Record<string, string> = Object.fromEntries(
+  Object.entries(BRAND_FILES).map(([path, url]) => [
+    (path.split("/").pop() ?? "").replace(/\.jpg$/, ""),
+    url,
+  ]),
+);
+
+/** Photo for one brand of an item, falling back to the item's main photo. */
+export function brandPhoto(itemId: string, brandId?: string | null): string {
+  return (brandId && BRAND_PHOTOS[`${itemId}--${brandId}`]) || ITEM_PHOTOS[itemId] || "";
+}
+
+/** Photo of the brand the customer currently has picked for an item. */
+export function pickedPhoto(cart: CartState, itemId: string): string {
+  return brandPhoto(itemId, selectedBrand(cart, itemId)?.id);
+}

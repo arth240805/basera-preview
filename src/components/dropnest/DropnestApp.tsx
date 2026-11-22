@@ -44,7 +44,7 @@ import {
 } from "lucide-react";
 
 import heroImage from "@/assets/dropnest-room.jpg";
-import { ITEM_PHOTOS } from "@/components/dropnest/itemPhotos";
+import { ITEM_PHOTOS, pickedPhoto } from "@/components/dropnest/itemPhotos";
 import {
   CountUp,
   DeliveryRoute,
@@ -88,8 +88,11 @@ import {
   earliestMoveInDate,
   formatINR,
   itemLineQty,
+  itemUnitPrice,
+  kitBrandLines,
   kitExtraLines,
-  kitExtrasTotal,
+  kitLineTotal,
+  selectedBrand,
   setItemQty,
   isValidIndianPhone,
   itemAddonLines,
@@ -722,11 +725,14 @@ function ItemRow({
   isNew?: boolean;
   compact?: boolean;
 }) {
+  const { cart } = useDropnest();
   const extra = qty - 1;
+  const unit = itemUnitPrice(cart, item.id);
+  const brand = selectedBrand(cart, item.id);
   return (
     <li className="flex items-center gap-3 rounded-xl px-2 py-2 odd:bg-muted/60">
       <img
-        src={ITEM_PHOTOS[item.id]}
+        src={pickedPhoto(cart, item.id)}
         alt={item.name}
         loading="lazy"
         width={320}
@@ -746,14 +752,15 @@ function ItemRow({
           )}
         </p>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
+          {brand && <span className="font-semibold text-foreground">{brand.name} · </span>}
           {item.qty} included
           {extra > 0 ? (
             <span className="font-bold text-primary">
               {" "}
-              · +{extra} extra · +{formatINR(extra * item.extraPrice)}
+              · +{extra} extra · +{formatINR(extra * unit)}
             </span>
           ) : (
-            <> · +{formatINR(item.extraPrice)} per extra</>
+            <> · +{formatINR(unit)} per extra</>
           )}
         </p>
       </div>
@@ -829,7 +836,9 @@ export function ItemAddonTile({
   onQty: (q: number) => void;
   compact?: boolean;
 }) {
+  const { cart } = useDropnest();
   const from = KITS[itemSourceKit(item.id)].name.replace(" Kit", "");
+  const brand = selectedBrand(cart, item.id);
   return (
     <li
       className={cn(
@@ -838,7 +847,7 @@ export function ItemAddonTile({
       )}
     >
       <img
-        src={ITEM_PHOTOS[item.id]}
+        src={pickedPhoto(cart, item.id)}
         alt={item.name}
         loading="lazy"
         width={320}
@@ -855,8 +864,10 @@ export function ItemAddonTile({
           {item.name}
         </p>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
-          <span className="font-semibold text-foreground">{formatINR(item.extraPrice)}</span> · from{" "}
-          {from}
+          <span className="font-semibold text-foreground">
+            {formatINR(itemUnitPrice(cart, item.id))}
+          </span>
+          {brand && <> · {brand.name}</>} · from {from}
         </p>
       </div>
       <AddonQtyControl qty={qty} onChange={onQty} label={item.name} />
@@ -1784,9 +1795,21 @@ function CartDrawer({
                         </p>
                       </div>
                       <p className="font-display font-bold">
-                        {formatINR(kit.price * qty + kitExtrasTotal(cart, id))}
+                        {formatINR(kitLineTotal(cart, id))}
                       </p>
                     </div>
+                    {kitBrandLines(cart, id).length > 0 && (
+                      <ul className="mt-2 space-y-0.5 rounded-lg bg-muted/70 px-3 py-2 text-xs">
+                        {kitBrandLines(cart, id).map((l) => (
+                          <li key={l.item.id} className="flex justify-between gap-2">
+                            <span className="truncate">
+                              {l.brand.name} · {l.item.name.split(" (")[0]}
+                            </span>
+                            <span className="shrink-0 font-semibold">+{formatINR(l.amount)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     {kitExtraLines(cart, id).length > 0 && (
                       <ul className="mt-2 space-y-0.5 rounded-lg bg-primary-soft/60 px-3 py-2 text-xs">
                         {kitExtraLines(cart, id).map((l) => (
@@ -2290,9 +2313,10 @@ function CheckoutDialog({
         total: t.total,
         method,
         kitNames: KIT_ORDER.filter((id) => (cart.kits[id] ?? 0) > 0).map((id) => {
-          const extras = kitExtraLines(cart, id)
-            .map((l) => `+${l.extra} ${l.item.name.split(" (")[0]}`)
-            .join(", ");
+          const extras = [
+            ...kitBrandLines(cart, id).map((l) => `${l.brand.name} ${l.item.name.split(" (")[0]}`),
+            ...kitExtraLines(cart, id).map((l) => `+${l.extra} ${l.item.name.split(" (")[0]}`),
+          ].join(", ");
           return `${KITS[id].name} × ${cart.kits[id]}${extras ? ` (${extras})` : ""}`;
         }),
         addonNames: [

@@ -24,7 +24,8 @@ import {
   otherKitsLabel,
   selectClass,
 } from "@/components/dropnest/DropnestApp";
-import { ITEM_PHOTOS } from "@/components/dropnest/itemPhotos";
+import { BrandPicker } from "@/components/dropnest/BrandPicker";
+import { pickedPhoto } from "@/components/dropnest/itemPhotos";
 import { useDropnest } from "@/components/dropnest/store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -36,6 +37,9 @@ import {
   discountPercent,
   formatINR,
   itemLineQty,
+  itemUnitPrice,
+  kitBrandPicks,
+  kitPriceWithBrands,
   kitExtraLines,
   kitExtrasTotal,
   kitItemGroups,
@@ -73,6 +77,8 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
   const badge = deliveryBadge(city);
   const groups = kitItemGroups(kitId);
   const extras = kitExtraLines(cart, kitId);
+  const brandPicks = kitBrandPicks(cart, kitId);
+  const pricePerKit = kitPriceWithBrands(cart, kitId);
   const mosaic = kit.items.slice(-9);
   const upgrades = kitUpgradeItems(kitId);
   const cartTop = topKitInCart(cart);
@@ -115,7 +121,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                 {mosaic.map((it, i) => (
                   <img
                     key={it.id}
-                    src={ITEM_PHOTOS[it.id]}
+                    src={pickedPhoto(cart, it.id)}
                     alt={it.name}
                     width={320}
                     height={320}
@@ -154,6 +160,15 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                 <Check className="size-4" /> You save {formatINR(kit.originalPrice - kit.price)} (
                 {discountPercent(kit.price, kit.originalPrice)}% off)
               </p>
+              {pricePerKit > kit.price && (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  With your brand picks:{" "}
+                  <span className="font-display text-lg font-bold text-foreground">
+                    {formatINR(pricePerKit)}
+                  </span>{" "}
+                  per kit (+{formatINR(pricePerKit - kit.price)})
+                </p>
+              )}
 
               <div className="mt-6 rounded-2xl border border-border bg-card p-3">
                 <label
@@ -209,6 +224,24 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                 </Button>
               </div>
 
+              {brandPicks.length > 0 && (
+                <div className="mt-4 rounded-xl bg-primary-soft/60 px-4 py-3 text-sm">
+                  <p className="font-bold">
+                    Your brand picks: +{formatINR(pricePerKit - kit.price)} per kit
+                  </p>
+                  <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+                    {brandPicks.map((p) => (
+                      <li key={p.item.id} className="flex justify-between gap-2">
+                        <span className="truncate">
+                          {p.brand.name} · {p.item.name.split(" (")[0]}
+                        </span>
+                        <span className="shrink-0 font-semibold">+{formatINR(p.brand.upcharge)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {extras.length > 0 && (
                 <div className="mt-4 rounded-xl bg-primary-soft/60 px-4 py-3 text-sm">
                   <p className="font-bold">
@@ -262,7 +295,8 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
           <section className="py-14">
             <h2 className="text-3xl font-extrabold sm:text-4xl">What's in the box</h2>
             <p className="mt-2 text-muted-foreground">
-              Every item below comes in your {kit.name}. Tap + to add extra units of anything.
+              Every item below comes in your {kit.name}. Pick the brand you like for each one, and
+              tap + to add extra units.
             </p>
             {groups.map((g) => (
               <div key={g.title} className="mt-10">
@@ -278,6 +312,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                 <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {g.items.map((it) => {
                     const lineQty = itemLineQty(cart, kitId, it.id);
+                    const unit = itemUnitPrice(cart, it.id);
                     return (
                       <li
                         key={it.id}
@@ -285,7 +320,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                       >
                         <div className="overflow-hidden rounded-xl">
                           <img
-                            src={ITEM_PHOTOS[it.id]}
+                            src={pickedPhoto(cart, it.id)}
                             alt={it.name}
                             loading="lazy"
                             width={320}
@@ -293,17 +328,20 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                             className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
                         </div>
-                        <p className="mt-3 flex-1 font-semibold leading-snug">{it.name}</p>
+                        <p className="mt-3 font-semibold leading-snug">{it.name}</p>
+                        <div className="flex-1">
+                          <BrandPicker itemId={it.id} itemName={it.name} />
+                        </div>
                         <div className="mt-3 flex items-center justify-between gap-2">
                           <span className="text-xs text-muted-foreground">
                             {it.qty} included
                             <br />
                             {lineQty > 1 ? (
                               <span className="font-bold text-primary">
-                                +{lineQty - 1} extra · +{formatINR((lineQty - 1) * it.extraPrice)}
+                                +{lineQty - 1} extra · +{formatINR((lineQty - 1) * unit)}
                               </span>
                             ) : (
-                              <>+{formatINR(it.extraPrice)} per extra</>
+                              <>+{formatINR(unit)} per extra</>
                             )}
                           </span>
                           <ItemStepper
@@ -349,7 +387,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                     >
                       <div className="relative overflow-hidden rounded-xl">
                         <img
-                          src={ITEM_PHOTOS[it.id]}
+                          src={pickedPhoto(cart, it.id)}
                           alt={it.name}
                           loading="lazy"
                           width={320}
@@ -360,13 +398,16 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                           From {KITS[from].name}
                         </span>
                       </div>
-                      <p className="mt-3 flex-1 font-semibold leading-snug">{it.name}</p>
+                      <p className="mt-3 font-semibold leading-snug">{it.name}</p>
+                      <div className="flex-1">
+                        {!covered && <BrandPicker itemId={it.id} itemName={it.name} baseLabel="Base" />}
+                      </div>
                       <div className="mt-3 flex items-center justify-between gap-2">
                         <span className="text-xs text-muted-foreground">
                           {it.qty}
                           <br />
                           <span className="font-display text-base font-bold text-foreground">
-                            +{formatINR(it.extraPrice)}
+                            +{formatINR(itemUnitPrice(cart, it.id))}
                           </span>
                         </span>
                         {covered ? (
@@ -402,7 +443,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-xs text-muted-foreground">{kit.name}</p>
-            <p className="font-display text-lg font-bold leading-tight">{formatINR(kit.price)}</p>
+            <p className="font-display text-lg font-bold leading-tight">{formatINR(pricePerKit)}</p>
           </div>
           {totals.itemCount > 0 ? (
             <Button variant="hero" size="xl" onClick={() => setCartOpen(true)}>
