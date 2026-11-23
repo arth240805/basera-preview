@@ -59,8 +59,8 @@ export const ITEM_PHOTOS: Record<string, string> = {
   "extra-bedsheet": bedsheet,
 };
 
-// One photo per brand option, named "<item-id>--<brand-id>.jpg". The included
-// (first) brand of each item uses the item's main photo above.
+// One real store photo per brand option (including the included brand), named
+// "<item-id>--<brand-id>.jpg". The item's main photo above is only a fallback.
 const BRAND_FILES = import.meta.glob<string>("../../assets/items/brands/*.jpg", {
   eager: true,
   import: "default",

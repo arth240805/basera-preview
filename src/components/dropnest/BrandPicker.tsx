@@ -31,7 +31,7 @@ export function BrandPicker({
       <div
         role="radiogroup"
         aria-label={`Brand for ${itemName}`}
-        className="mt-1.5 grid grid-cols-3 gap-1.5"
+        className="mt-1.5 grid grid-cols-3 gap-1.5 sm:grid-cols-4"
       >
         {options.map((o, i) => {
           const on = picked?.id === o.id;
