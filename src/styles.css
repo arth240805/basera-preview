@@ -88,6 +88,8 @@
   --animate-ken-burns: ken-burns 22s ease-in-out infinite alternate;
   --animate-drift: drift 14s ease-in-out infinite;
   --animate-shine: shine 4s ease-in-out infinite;
+  --animate-morph: morph 16s ease-in-out infinite;
+  --animate-gradient: gradient-pan 8s ease-in-out infinite;
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -163,6 +165,29 @@
   --shadow-soft: 0 1px 2px oklch(0.3 0.03 50 / 6%), 0 8px 24px -12px oklch(0.3 0.03 50 / 18%);
   --shadow-lift: 0 2px 4px oklch(0.3 0.03 50 / 6%), 0 24px 48px -20px oklch(0.4 0.08 45 / 30%);
   --shadow-cta: 0 10px 24px -10px color-mix(in oklab, var(--primary) 65%, transparent);
+  /* Motion palette: warm glows used by animated gradients, blobs and rings */
+  --ink-glow: oklch(0.31 0.07 48);
+  --gradient-flow: linear-gradient(
+    100deg,
+    var(--highlight),
+    var(--success-ink),
+    var(--primary),
+    var(--highlight)
+  );
+  --gradient-soft-flow: linear-gradient(
+    120deg,
+    var(--highlight-soft),
+    var(--success-soft),
+    var(--primary-soft),
+    var(--highlight-soft)
+  );
+  --gradient-ink-flow: linear-gradient(
+    125deg,
+    var(--ink),
+    var(--ink-glow),
+    var(--primary-deep),
+    var(--ink)
+  );
 }
 
 @layer base {
@@ -351,4 +376,331 @@
 
 @utility text-balance-safe {
   text-wrap: balance;
+}
+
+/* ───────────────────────── Motion system ─────────────────────────
+ * Everything below is CSS-only or driven by tiny hooks in motion.tsx.
+ * The global prefers-reduced-motion rule above flattens all of it.
+ */
+
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes gradient-pan {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes morph {
+  0%,
+  100% {
+    border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+    transform: rotate(0deg) scale(1);
+  }
+  33% {
+    border-radius: 70% 30% 46% 54% / 30% 29% 71% 70%;
+    transform: rotate(50deg) scale(1.05);
+  }
+  66% {
+    border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%;
+    transform: rotate(-25deg) scale(0.96);
+  }
+}
+
+@keyframes spin-angle {
+  to {
+    --angle: 360deg;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes sheen {
+  from {
+    transform: translateX(-120%) skewX(-20deg);
+  }
+  to {
+    transform: translateX(320%) skewX(-20deg);
+  }
+}
+
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.995);
+  }
+}
+
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+@layer components {
+  /* Gradient animation */
+  .text-gradient-flow {
+    background-image: var(--gradient-flow);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-pan 8s ease-in-out infinite;
+  }
+  .bg-gradient-flow {
+    background-image: var(--gradient-flow);
+    background-size: 300% 300%;
+    animation: gradient-pan 8s ease-in-out infinite;
+  }
+  .bg-soft-flow {
+    background-image: var(--gradient-soft-flow);
+    background-size: 300% 300%;
+    animation: gradient-pan 14s ease-in-out infinite;
+  }
+  .bg-ink-flow {
+    background-image: var(--gradient-ink-flow);
+    background-size: 300% 300%;
+    animation: gradient-pan 18s ease-in-out infinite;
+  }
+  /* Rotating gradient border, drawn outside the element's own border */
+  .gradient-ring {
+    position: relative;
+  }
+  .gradient-ring::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    padding: 2px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from var(--angle),
+      var(--highlight),
+      var(--highlight-soft),
+      var(--primary),
+      var(--success),
+      var(--highlight)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: spin-angle 5s linear infinite;
+    pointer-events: none;
+  }
+
+  /* Morphing blob */
+  .morph-blob {
+    animation: morph 16s ease-in-out infinite;
+    will-change: border-radius, transform;
+  }
+
+  /* Magnetic pull (vars set by <Magnetic>) */
+  .magnetic {
+    display: inline-flex;
+    transform: translate3d(var(--mx, 0px), var(--my, 0px), 0);
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* 3D tilt + cursor glare (vars set by tiltMove) */
+  .tilt {
+    transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition:
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.3s,
+      translate 0.3s;
+  }
+  .tilt-glare {
+    position: relative;
+  }
+  .tilt-glare::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      420px circle at var(--gx, 50%) var(--gy, 0%),
+      color-mix(in oklab, var(--highlight) 14%, transparent),
+      transparent 60%
+    );
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .tilt-glare:hover::after {
+    opacity: 1;
+  }
+
+  /* Parallax (var set by <Parallax>) */
+  .parallax {
+    transform: translate3d(0, var(--parallax, 0px), 0);
+    will-change: transform;
+  }
+
+  /* Scroll-in reveal and stagger (data-motion set by useReveal) */
+  .reveal-up[data-motion="pending"],
+  .stagger[data-motion="pending"] > * {
+    opacity: 0;
+  }
+  .reveal-up[data-motion="in"],
+  .stagger[data-motion="in"] > * {
+    animation: rise-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation-delay: calc(var(--i, 0) * var(--stagger-step, 90ms));
+  }
+  /* Stagger on first paint, no JS needed */
+  .stagger-load > * {
+    animation: rise-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 90ms + 60ms);
+  }
+  .stagger > :nth-child(2),
+  .stagger-load > :nth-child(2) {
+    --i: 1;
+  }
+  .stagger > :nth-child(3),
+  .stagger-load > :nth-child(3) {
+    --i: 2;
+  }
+  .stagger > :nth-child(4),
+  .stagger-load > :nth-child(4) {
+    --i: 3;
+  }
+  .stagger > :nth-child(5),
+  .stagger-load > :nth-child(5) {
+    --i: 4;
+  }
+  .stagger > :nth-child(6),
+  .stagger-load > :nth-child(6) {
+    --i: 5;
+  }
+  .stagger > :nth-child(7),
+  .stagger-load > :nth-child(7) {
+    --i: 6;
+  }
+  .stagger > :nth-child(8),
+  .stagger-load > :nth-child(8) {
+    --i: 7;
+  }
+  .stagger > :nth-child(n + 9),
+  .stagger-load > :nth-child(n + 9) {
+    --i: 8;
+  }
+
+  /* Hover: animated underline */
+  .link-underline {
+    position: relative;
+  }
+  .link-underline::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -5px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--highlight);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .link-underline:hover::after,
+  .link-underline:focus-visible::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  /* Hover: light sweep across buttons */
+  .btn-shine {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .btn-shine::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 35%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--primary-foreground) 35%, transparent),
+      transparent
+    );
+    transform: translateX(-120%) skewX(-20deg);
+    pointer-events: none;
+  }
+  .btn-shine:hover::after {
+    animation: sheen 0.9s ease;
+  }
+
+  /* 3D flip card: hover (mouse), focus (keyboard) or aria-pressed (tap) */
+  .flip-card {
+    perspective: 1200px;
+  }
+  .flip-inner {
+    position: relative;
+    display: grid;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .flip-face {
+    grid-area: 1 / 1;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .flip-back {
+    transform: rotateY(180deg);
+  }
+  @media (hover: hover) {
+    .flip-card:hover .flip-inner {
+      transform: rotateY(180deg);
+    }
+  }
+  .flip-card:focus-visible .flip-inner,
+  .flip-card[aria-pressed="true"] .flip-inner {
+    transform: rotateY(180deg);
+  }
+
+  /* Scroll progress bar (var set by <ScrollProgress>) */
+  .scroll-progress {
+    transform-origin: 0 50%;
+    transform: scaleX(var(--progress, 0));
+  }
+}
+
+/* Page-to-page transition */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: vt-out 0.22s ease-in both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

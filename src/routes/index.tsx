@@ -5,15 +5,15 @@ import DropnestApp from "@/components/dropnest/DropnestApp";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dropnest — Move-in kits for hostels & PGs | Move in. Done." },
+      { title: "Basera — Move-in kits for hostels & PGs | Move in. Done." },
       {
         name: "description",
         content:
-          "One order, one box. Dropnest move-in kits for students and first-time renters in Kota, Pune, Delhi NCR, Bengaluru & Hyderabad. Free hostel delivery, COD available.",
+          "One order, one box. Basera move-in kits for students and first-time renters in Kota, Pune, Delhi NCR, Bengaluru & Hyderabad. Free hostel delivery, COD available.",
       },
       {
         property: "og:title",
-        content: "Dropnest — Walk into an empty room. Walk out with a home.",
+        content: "Basera — Walk into an empty room. Walk out with a home.",
       },
       {
         property: "og:description",

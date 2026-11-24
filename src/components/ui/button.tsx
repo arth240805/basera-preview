@@ -16,10 +16,10 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        hero: "bg-gradient-primary text-primary-foreground font-semibold shadow-cta hover:brightness-105 active:scale-[0.98] transition-all",
+        hero: "btn-shine bg-gradient-primary text-primary-foreground font-semibold shadow-cta hover:brightness-110 hover:shadow-lift active:scale-[0.97] transition-all duration-300",
         trust: "bg-success text-success-foreground font-semibold shadow-sm hover:bg-success/90",
         soft: "bg-primary-soft text-accent-foreground font-semibold hover:bg-accent",
-        ink: "bg-ink text-ink-foreground font-semibold hover:bg-ink/90",
+        ink: "btn-shine bg-ink text-ink-foreground font-semibold hover:bg-ink/90 active:scale-[0.97] transition-all duration-300",
         line: "border border-border bg-card text-foreground font-semibold hover:border-primary/50 hover:bg-primary-soft",
       },
       size: {

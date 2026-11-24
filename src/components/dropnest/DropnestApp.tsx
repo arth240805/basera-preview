@@ -51,7 +51,16 @@ import {
   DriftingBoxes,
   FloatingItem,
   ItemMarquee,
+  Magnetic,
+  MorphBlob,
+  Parallax,
+  Reveal,
+  Stagger,
+  tiltLeave,
+  tiltMove,
+  useScrolled,
 } from "@/components/dropnest/motion";
+import { BaseraMark } from "@/components/dropnest/brand";
 import { useDropnest, useGoToSection, type View } from "@/components/dropnest/store";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -248,11 +257,12 @@ export function DropnestOverlays() {
   const goToSection = useGoToSection();
   return (
     <>
+      <Magnetic className="fixed bottom-6 right-6 z-40 hidden md:inline-flex" strength={0.4}>
       <button
         type="button"
         onClick={() => setCartOpen(true)}
         aria-label={`Open cart, ${totals.itemCount} items`}
-        className="fixed bottom-6 right-6 z-40 hidden h-14 items-center gap-2 rounded-full bg-gradient-primary px-5 font-semibold text-primary-foreground shadow-cta transition-transform hover:scale-105 md:inline-flex"
+        className="btn-shine relative inline-flex h-14 items-center gap-2 rounded-full bg-gradient-primary px-5 font-semibold text-primary-foreground shadow-cta transition-[scale,box-shadow] duration-300 hover:scale-105 hover:shadow-lift"
       >
         <ShoppingBag className="size-5" />
         {totals.itemCount > 0 ? formatINR(totals.total) : "Cart"}
@@ -265,6 +275,7 @@ export function DropnestOverlays() {
           </span>
         )}
       </button>
+      </Magnetic>
 
       <CartDrawer
         open={cartOpen}
@@ -314,12 +325,18 @@ export function TopBar() {
 
 function Logo() {
   return (
-    <Link to="/" className="flex items-center gap-2.5" aria-label="Dropnest home">
-      <span className="grid size-9 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-cta">
-        <PackageCheck className="size-5" />
+    <Link to="/" className="group flex items-center gap-2.5" aria-label="Basera home">
+      <span className="relative grid size-10 place-items-center">
+        <span
+          aria-hidden
+          className="morph-blob absolute -inset-1 bg-soft-flow opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        />
+        <BaseraMark className="relative size-10 drop-shadow-sm transition-transform duration-500 [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-6 group-hover:scale-110" />
       </span>
       <span className="leading-none">
-        <span className="block font-display text-xl font-extrabold tracking-tight">Dropnest</span>
+        <span className="block font-display text-xl font-extrabold tracking-tight">
+          Basera<span className="text-highlight">.</span>
+        </span>
         <span className="block text-[11px] font-medium text-muted-foreground">Move in. Done.</span>
       </span>
     </Link>
@@ -331,32 +348,47 @@ export function Header() {
   const cartCount = totals.itemCount;
   const onOpenCart = () => setCartOpen(true);
   const scrollToId = useGoToSection();
+  const scrolled = useScrolled(12);
   return (
     <header
       id="top"
-      className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-md"
+      data-scrolled={scrolled}
+      className="sticky top-0 z-30 border-b border-transparent bg-background/70 backdrop-blur-md transition-[background-color,border-color,box-shadow] duration-300 data-[scrolled=true]:border-border/70 data-[scrolled=true]:bg-background/90 data-[scrolled=true]:shadow-soft"
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
+      <div
+        className={cn(
+          "mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 transition-[height] duration-300",
+          scrolled ? "h-14" : "h-16",
+        )}
+      >
         <Logo />
         <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground lg:flex">
           <button
             type="button"
             onClick={() => scrollToId("kits")}
-            className="hover:text-foreground"
+            className="link-underline transition-colors hover:text-foreground"
           >
             Kits
           </button>
-          <button type="button" onClick={() => scrollToId("how")} className="hover:text-foreground">
+          <button
+            type="button"
+            onClick={() => scrollToId("how")}
+            className="link-underline transition-colors hover:text-foreground"
+          >
             How it works
           </button>
           <button
             type="button"
             onClick={() => scrollToId("checklist")}
-            className="hover:text-foreground"
+            className="link-underline transition-colors hover:text-foreground"
           >
             Checklist
           </button>
-          <button type="button" onClick={() => scrollToId("b2b")} className="hover:text-foreground">
+          <button
+            type="button"
+            onClick={() => scrollToId("b2b")}
+            className="link-underline transition-colors hover:text-foreground"
+          >
             For PG Owners
           </button>
         </nav>
@@ -366,7 +398,7 @@ export function Header() {
             onClick={onToggleView}
             aria-pressed={view === "parent"}
             className={cn(
-              "inline-flex h-10 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors sm:px-4 sm:text-sm",
+              "inline-flex h-10 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-soft active:scale-95 sm:px-4 sm:text-sm",
               view === "parent"
                 ? "border-success/40 bg-success-soft text-success-ink"
                 : "border-border bg-card text-foreground hover:border-primary/40",
@@ -382,11 +414,12 @@ export function Header() {
               </>
             )}
           </button>
+          <Magnetic strength={0.45}>
           <button
             type="button"
             onClick={onOpenCart}
             aria-label={`Open cart, ${cartCount} items`}
-            className="relative grid size-10 place-items-center rounded-full border border-border bg-card hover:border-primary/40"
+            className="relative grid size-10 place-items-center rounded-full border border-border bg-card transition-[border-color,box-shadow] duration-300 hover:border-primary/40 hover:shadow-soft"
           >
             <ShoppingBag className="size-5" />
             {cartCount > 0 && (
@@ -398,6 +431,7 @@ export function Header() {
               </span>
             )}
           </button>
+          </Magnetic>
         </div>
       </div>
     </header>
@@ -453,16 +487,20 @@ function Hero({
   const points = view === "parent" ? PARENT_POINTS : STUDENT_POINTS;
   return (
     <section className="relative overflow-hidden bg-hero">
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-grid" />
+      <Parallax speed={-0.15} aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-grid" />
+      </Parallax>
+      <MorphBlob className="-left-40 top-24 size-[26rem] opacity-60" />
       <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-14 pt-6 md:pt-16 lg:grid-cols-[1.05fr_1fr] lg:gap-14 lg:pb-20">
-        <div className="animate-fade-up">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary-soft px-3 py-1 text-xs font-semibold text-accent-foreground">
+        <div className="stagger-load">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-primary-soft px-3 py-1 text-xs font-semibold text-accent-foreground transition-transform duration-300 hover:scale-105">
             {view === "parent"
               ? "🛡️ Built for parents who worry"
               : "🎓 For students & first-time renters"}
           </span>
           <h1 className="mt-5 text-balance-safe text-4xl font-extrabold leading-[1.02] sm:text-5xl lg:text-6xl">
-            Walk into an empty room. <span className="text-primary">Walk out with a home.</span>
+            Walk into an empty room.{" "}
+            <span className="text-gradient-flow">Walk out with a home.</span>
           </h1>
           <p className="mt-4 max-w-xl text-base text-muted-foreground sm:text-lg lg:mt-5">
             {view === "parent"
@@ -470,7 +508,7 @@ function Hero({
               : "Skip the 6-shop scramble on day one. One order gets you one box with every PG and hostel essential — bedding, bath, study gear — waiting before you arrive."}
           </p>
 
-          <div className="mt-7 max-w-md rounded-2xl border border-border bg-card p-3 shadow-soft">
+          <div className="mt-7 max-w-md rounded-2xl border border-border bg-card p-3 shadow-soft transition-shadow duration-300 focus-within:shadow-lift hover:shadow-lift">
             <Label
               htmlFor="hero-city"
               className="flex items-center gap-1.5 px-1 text-xs font-semibold text-muted-foreground"
@@ -509,15 +547,21 @@ function Hero({
           </div>
 
           <div className="mt-5 flex flex-col gap-3 sm:flex-row lg:mt-6">
-            <Button variant="hero" size="xl" onClick={onExplore}>
-              Explore Kits <ChevronDown />
-            </Button>
-            <Button variant="line" size="xl" onClick={onQuiz}>
-              <Sparkles className="text-primary" /> Take 30-Sec Room Quiz
-            </Button>
+            <Magnetic className="flex">
+              <Button variant="hero" size="xl" className="group w-full" onClick={onExplore}>
+                Explore Kits{" "}
+                <ChevronDown className="transition-transform duration-300 group-hover:translate-y-0.5" />
+              </Button>
+            </Magnetic>
+            <Magnetic className="flex">
+              <Button variant="line" size="xl" className="group w-full" onClick={onQuiz}>
+                <Sparkles className="text-primary transition-transform duration-500 group-hover:rotate-180 group-hover:scale-125" />{" "}
+                Take 30-Sec Room Quiz
+              </Button>
+            </Magnetic>
           </div>
 
-          <div className="mt-4 inline-flex items-center gap-2 self-start rounded-full border border-border bg-card px-4 py-2 text-sm lg:mt-7">
+          <div className="mt-4 flex w-fit items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm lg:mt-7">
             <Clock className="h-4 w-4 shrink-0 text-highlight" />
             <span className="font-semibold">
               <CountUp key="h" to={24} suffix="h" />
@@ -526,35 +570,41 @@ function Hero({
           </div>
         </div>
 
-        <div className="relative animate-fade-up [animation-delay:120ms]">
-          <div className="overflow-hidden rounded-[2rem] border border-border shadow-lift">
-            <img
-              src={heroImage}
-              alt="A freshly set-up hostel room with bedding, study table, bucket and an opened Dropnest box"
-              width={1280}
-              height={1024}
-              className="aspect-[5/4] w-full animate-ken-burns object-cover"
-            />
-          </div>
+        <div className="relative animate-fade-up [animation-delay:200ms]">
+          <MorphBlob className="-inset-8 -z-0 opacity-80" />
+          <Parallax speed={0.06} className="relative">
+            <div className="overflow-hidden rounded-[2rem] border border-border shadow-lift">
+              <img
+                src={heroImage}
+                alt="A freshly set-up hostel room with bedding, study table, bucket and an opened Basera box"
+                width={1280}
+                height={1024}
+                className="aspect-[5/4] w-full animate-ken-burns object-cover"
+              />
+            </div>
+          </Parallax>
           <FloatingItem
             id="pillow"
             label="Pillow"
             tilt={-4}
-            className="-left-8 top-[18%] hidden xl:flex"
+            speed={0.18}
+            className="-left-8 top-[18%] hidden xl:block"
           />
           <FloatingItem
             id="kettle"
             label="Kettle"
             tilt={3}
             delay={1400}
-            className="-right-6 top-[42%] hidden md:flex"
+            speed={0.1}
+            className="-right-6 top-[42%] hidden md:block"
           />
           <FloatingItem
             id="led-lamp"
             label="Study lamp"
             tilt={-3}
             delay={2800}
-            className="-left-10 top-[58%] hidden xl:flex"
+            speed={0.24}
+            className="-left-10 top-[58%] hidden xl:block"
           />
           <div
             className="absolute -bottom-5 left-4 flex animate-float items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-lift sm:left-6"
@@ -589,18 +639,18 @@ function Hero({
           key={view}
           className="mx-auto grid max-w-6xl grid-cols-1 gap-px px-4 sm:grid-cols-2 lg:grid-cols-4"
           aria-label={
-            view === "parent" ? "Why parents trust Dropnest" : "Why students pick Dropnest"
+            view === "parent" ? "Why parents trust Basera" : "Why students pick Basera"
           }
         >
           {points.map((p, i) => (
             <li
               key={p.title}
-              className="flex animate-fade-up items-start gap-3 py-5 lg:px-4"
-              style={{ animationDelay: `${i * 70}ms` }}
+              className="group flex animate-fade-up items-start gap-3 py-5 lg:px-4"
+              style={{ animationDelay: `${i * 90}ms` }}
             >
               <span
                 className={cn(
-                  "grid size-10 shrink-0 place-items-center rounded-xl",
+                  "grid size-10 shrink-0 place-items-center rounded-xl transition-transform duration-500 [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-1 group-hover:rotate-[-8deg] group-hover:scale-110",
                   view === "parent"
                     ? "bg-success-soft text-success"
                     : "bg-primary-soft text-primary",
@@ -633,11 +683,15 @@ export function SectionHeading({
   text?: string;
 }) {
   return (
-    <div className="reveal mx-auto max-w-2xl text-center">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">{eyebrow}</p>
+    <Stagger className="mx-auto max-w-2xl text-center">
+      <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">
+        <span aria-hidden className="bg-gradient-flow h-px w-6 rounded-full" />
+        {eyebrow}
+        <span aria-hidden className="bg-gradient-flow h-px w-6 rounded-full" />
+      </p>
       <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">{title}</h2>
       {text && <p className="mt-3 text-muted-foreground">{text}</p>}
-    </div>
+    </Stagger>
   );
 }
 
@@ -945,7 +999,7 @@ function KitsSection({
         title="Three boxes. Zero shopping lists."
         text="Every kit ships free, arrives 24 hours before you do, and is covered by a 7-day replacement."
       />
-      <div className="mx-auto mt-12 grid max-w-6xl gap-6 lg:grid-cols-3 lg:items-start">
+      <Stagger className="mx-auto mt-12 grid max-w-6xl gap-6 [--stagger-step:140ms] lg:grid-cols-3 lg:items-start">
         {KIT_ORDER.map((id) => {
           const kit = KITS[id];
           const Icon = KIT_ICON[id];
@@ -953,11 +1007,11 @@ function KitsSection({
           return (
             <article
               key={id}
+              onPointerMove={(e) => tiltMove(e, 4)}
+              onPointerLeave={tiltLeave}
               className={cn(
-                "reveal relative flex flex-col rounded-3xl border bg-card p-6 shadow-soft transition-[box-shadow,translate] duration-300 hover:-translate-y-1 hover:shadow-lift",
-                kit.popular
-                  ? "border-highlight bg-popular ring-2 ring-highlight/40 lg:-mt-4"
-                  : "border-border",
+                "tilt tilt-glare relative flex flex-col rounded-3xl border bg-card p-6 shadow-soft hover:-translate-y-1.5 hover:shadow-lift",
+                kit.popular ? "gradient-ring border-transparent bg-popular lg:-mt-4" : "border-border",
               )}
             >
               {kit.popular && (
@@ -998,7 +1052,7 @@ function KitsSection({
                     +{kit.items.length - 5}
                   </span>
                 </div>
-                <h3 className="mt-4 text-2xl font-extrabold group-hover:text-primary">
+                <h3 className="mt-4 text-2xl font-extrabold transition-colors group-hover:text-highlight">
                   {kit.name}
                 </h3>
                 <p className="mt-1 min-h-10 text-sm text-muted-foreground">{kit.tagline}</p>
@@ -1039,23 +1093,23 @@ function KitsSection({
               <Link
                 to="/kits/$kitId"
                 params={{ kitId: id }}
-                className="mt-4 flex w-full items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold transition-colors hover:border-primary/40 hover:bg-primary-soft"
+                className="group/link mt-4 flex w-full items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold transition-colors hover:border-primary/40 hover:bg-primary-soft"
               >
                 View Complete Kit · all {kit.items.length} items
-                <ArrowRight className="size-4" />
+                <ArrowRight className="size-4 transition-transform duration-300 group-hover/link:translate-x-1" />
               </Link>
             </article>
           );
         })}
-      </div>
+      </Stagger>
 
-      <div className="mx-auto mt-10 max-w-6xl rounded-3xl border border-border bg-card p-5 shadow-soft sm:p-6">
+      <Reveal className="mx-auto mt-10 max-w-6xl rounded-3xl border border-border bg-card p-5 shadow-soft sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
           <div className="lg:w-56">
             <p className="font-display text-lg font-bold">Popular Add-Ons</p>
             <p className="text-sm text-muted-foreground">One tap to add or remove.</p>
           </div>
-          <div className="grid flex-1 gap-3 sm:grid-cols-3">
+          <Stagger className="grid flex-1 gap-3 sm:grid-cols-3">
             {ADDON_ORDER.map((aid) => {
               const a = ADDONS[aid];
               const on = cart.addons.includes(aid);
@@ -1071,7 +1125,7 @@ function KitsSection({
                     });
                   }}
                   className={cn(
-                    "flex items-center gap-3 rounded-2xl border p-3 text-left transition-colors",
+                    "group flex items-center gap-3 rounded-2xl border p-3 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-soft active:scale-[0.98]",
                     on ? "border-success bg-success-soft" : "border-border hover:border-primary/40",
                   )}
                 >
@@ -1082,7 +1136,7 @@ function KitsSection({
                       loading="lazy"
                       width={320}
                       height={320}
-                      className="size-12 rounded-xl border border-border object-cover"
+                      className="size-12 rounded-xl border border-border object-cover transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3"
                     />
                     <span
                       className={cn(
@@ -1101,14 +1155,14 @@ function KitsSection({
                 </button>
               );
             })}
-          </div>
+          </Stagger>
         </div>
         {topKitInCart(cart) && (
           <div className="mt-5 border-t border-border pt-5">
             <KitUpgradeSuggestions />
           </div>
         )}
-      </div>
+      </Reveal>
     </section>
   );
 }

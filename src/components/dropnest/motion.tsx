@@ -1,6 +1,14 @@
-// Decorative motion for the Dropnest pages: everything here is aria-hidden or purely visual,
+// Decorative motion for the Basera pages: everything here is aria-hidden or purely visual,
 // uses design tokens only, and is switched off for visitors who ask for reduced motion.
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type HTMLAttributes,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { Building2, Package, PackageCheck, Truck } from "lucide-react";
 
 import { ITEM_PHOTOS } from "@/components/dropnest/itemPhotos";
@@ -67,41 +75,41 @@ export function CountUp({
   );
 }
 
-/** A kit item photo that gently bobs beside the hero photo. */
+/** A kit item photo that gently bobs beside the hero photo, drifting with scroll at its own speed. */
 export function FloatingItem({
   id,
   label,
   className,
   delay = 0,
   tilt = 0,
+  speed = 0.12,
 }: {
   id: string;
   label: string;
   className?: string;
   delay?: number;
   tilt?: number;
+  speed?: number;
 }) {
   return (
-    <div
-      aria-hidden
-      className={cn(
-        "pointer-events-none absolute z-10 flex animate-float items-center gap-2 rounded-2xl border border-border bg-card/95 p-1.5 pr-3 shadow-lift backdrop-blur",
-        className,
-      )}
-      style={{ animationDelay: `${delay}ms`, ["--tilt" as string]: `${tilt}deg` }}
-    >
-      <img
-        src={ITEM_PHOTOS[id]}
-        alt=""
-        width={320}
-        height={320}
-        className="size-10 rounded-xl object-cover"
-      />
-      <span className="text-xs font-bold">{label}</span>
-      <span className="grid size-4 place-items-center rounded-full bg-success text-[9px] text-success-foreground">
-        ✓
-      </span>
-    </div>
+    <Parallax speed={speed} aria-hidden className={cn("pointer-events-none absolute z-10", className)}>
+      <div
+        className="flex animate-float items-center gap-2 rounded-2xl border border-border bg-card/95 p-1.5 pr-3 shadow-lift backdrop-blur"
+        style={{ animationDelay: `${delay}ms`, ["--tilt" as string]: `${tilt}deg` }}
+      >
+        <img
+          src={ITEM_PHOTOS[id]}
+          alt=""
+          width={320}
+          height={320}
+          className="size-10 rounded-xl object-cover"
+        />
+        <span className="text-xs font-bold">{label}</span>
+        <span className="grid size-4 place-items-center rounded-full bg-success text-[9px] text-success-foreground">
+          ✓
+        </span>
+      </div>
+    </Parallax>
   );
 }
 
@@ -215,5 +223,226 @@ export function DriftingBoxes() {
         />
       ))}
     </div>
+  );
+}
+
+/* ───────────────────────── Interaction hooks ───────────────────────── */
+
+function finePointer() {
+  return typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches;
+}
+
+/**
+ * Hides an element (or its children, with `.stagger`) until it scrolls into view, then plays
+ * the rise-in animation. Elements already on screen, SSR output and reduced-motion visitors
+ * are never hidden.
+ */
+export function useReveal<T extends HTMLElement>(): RefObject<T | null> {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || prefersReducedMotion() || typeof IntersectionObserver === "undefined") return;
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.92) return;
+    el.dataset["motion"] = "pending";
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        el.dataset["motion"] = "in";
+        io.disconnect();
+      },
+      { rootMargin: "0px 0px -8% 0px" },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      if (el.dataset["motion"] === "pending") delete el.dataset["motion"];
+    };
+  }, []);
+  return ref;
+}
+
+type RevealTag = "div" | "ul" | "ol" | "section";
+type RevealProps = { as?: RevealTag; children: ReactNode } & HTMLAttributes<HTMLElement>;
+
+/** Rises into view as one block when scrolled to. */
+export function Reveal({ as = "div", className, children, ...rest }: RevealProps) {
+  const ref = useReveal<HTMLDivElement>();
+  const Tag = as as "div";
+  return (
+    <Tag ref={ref} className={cn("reveal-up", className)} {...rest}>
+      {children}
+    </Tag>
+  );
+}
+
+/** Children rise into view one after another when the group is scrolled to. */
+export function Stagger({ as = "div", className, children, ...rest }: RevealProps) {
+  const ref = useReveal<HTMLDivElement>();
+  const Tag = as as "div";
+  return (
+    <Tag ref={ref} className={cn("stagger", className)} {...rest}>
+      {children}
+    </Tag>
+  );
+}
+
+/** Pulls its child toward the cursor while hovered (mouse only). */
+export function Magnetic({
+  children,
+  className,
+  strength = 0.3,
+}: {
+  children: ReactNode;
+  className?: string;
+  strength?: number;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || prefersReducedMotion() || !finePointer()) return;
+    let raf = 0;
+    const move = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - (r.left + r.width / 2)) * strength;
+      const y = (e.clientY - (r.top + r.height / 2)) * strength;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        el.style.setProperty("--mx", `${x.toFixed(1)}px`);
+        el.style.setProperty("--my", `${y.toFixed(1)}px`);
+      });
+    };
+    const leave = () => {
+      cancelAnimationFrame(raf);
+      el.style.setProperty("--mx", "0px");
+      el.style.setProperty("--my", "0px");
+    };
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerleave", leave);
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener("pointermove", move);
+      el.removeEventListener("pointerleave", leave);
+    };
+  }, [strength]);
+  return (
+    <span ref={ref} className={cn("magnetic", className)}>
+      {children}
+    </span>
+  );
+}
+
+/** Pointer handlers for `.tilt` / `.tilt-glare` cards: a gentle 3D lean toward the cursor. */
+export function tiltMove(e: ReactPointerEvent<HTMLElement>, max = 6) {
+  if (e.pointerType !== "mouse" || prefersReducedMotion()) return;
+  const el = e.currentTarget;
+  const r = el.getBoundingClientRect();
+  const px = (e.clientX - r.left) / r.width;
+  const py = (e.clientY - r.top) / r.height;
+  el.style.setProperty("--ry", `${((px - 0.5) * max * 2).toFixed(2)}deg`);
+  el.style.setProperty("--rx", `${((0.5 - py) * max * 2).toFixed(2)}deg`);
+  el.style.setProperty("--gx", `${(px * 100).toFixed(1)}%`);
+  el.style.setProperty("--gy", `${(py * 100).toFixed(1)}%`);
+}
+
+export function tiltLeave(e: ReactPointerEvent<HTMLElement>) {
+  const el = e.currentTarget;
+  el.style.setProperty("--rx", "0deg");
+  el.style.setProperty("--ry", "0deg");
+}
+
+/** Moves its content against the scroll; positive speed drifts up as you scroll down. */
+export function Parallax({
+  speed = 0.1,
+  className,
+  children,
+  ...rest
+}: { speed?: number; children: ReactNode } & HTMLAttributes<HTMLDivElement>) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || prefersReducedMotion()) return;
+    let raf = 0;
+    let current = 0;
+    const update = () => {
+      raf = 0;
+      const r = el.getBoundingClientRect();
+      // Measure the untransformed position so the offset never feeds back into itself.
+      const centre = r.top - current + r.height / 2 - window.innerHeight / 2;
+      current = -centre * speed;
+      el.style.setProperty("--parallax", `${current.toFixed(1)}px`);
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [speed]);
+  return (
+    <div ref={ref} className={cn("parallax", className)} {...rest}>
+      {children}
+    </div>
+  );
+}
+
+/** True once the page has scrolled past `threshold` pixels. */
+export function useScrolled(threshold = 8) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > threshold);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [threshold]);
+  return scrolled;
+}
+
+/** A thin animated-gradient bar along the top that fills as you scroll the page. */
+export function ScrollProgress() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      el.style.setProperty("--progress", max > 0 ? (window.scrollY / max).toFixed(4) : "0");
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+  return (
+    <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-50 h-[3px]">
+      <div ref={ref} className="scroll-progress bg-gradient-flow h-full w-full" />
+    </div>
+  );
+}
+
+/** A slowly morphing, softly blurred colour blob for section backdrops. */
+export function MorphBlob({ className, dark = false }: { className?: string; dark?: boolean }) {
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "morph-blob pointer-events-none absolute blur-2xl",
+        dark ? "bg-gradient-flow opacity-25" : "bg-soft-flow opacity-90",
+        className,
+      )}
+    />
   );
 }

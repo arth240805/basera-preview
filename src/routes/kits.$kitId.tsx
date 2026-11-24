@@ -9,10 +9,10 @@ export const Route = createFileRoute("/kits/$kitId")({
     return { kitId: params.kitId };
   },
   head: ({ loaderData }) => {
-    if (!loaderData) return { meta: [{ title: "Kit unavailable — Dropnest" }, { name: "robots", content: "noindex" }] };
+    if (!loaderData) return { meta: [{ title: "Kit unavailable — Basera" }, { name: "robots", content: "noindex" }] };
     const kit = KITS[loaderData.kitId];
-    const title = `${kit.name} — ${kit.items.length} move-in essentials for ${formatINR(kit.price)} | Dropnest`;
-    const description = `${kit.tagline} See every item in the Dropnest ${kit.name}, add extras, and get free hostel delivery with COD.`;
+    const title = `${kit.name} — ${kit.items.length} move-in essentials for ${formatINR(kit.price)} | Basera`;
+    const description = `${kit.tagline} See every item in the Basera ${kit.name}, add extras, and get free hostel delivery with COD.`;
     return {
       meta: [
         { title },

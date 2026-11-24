@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { DropnestOverlays } from "@/components/dropnest/DropnestApp";
 import { DropnestProvider } from "@/components/dropnest/store";
+import { ScrollProgress } from "@/components/dropnest/motion";
 
 function NotFoundComponent() {
   return (
@@ -84,12 +85,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Dropnest — Move in. Done." },
+      { title: "Basera — Move in. Done." },
       {
         name: "description",
         content: "Move-in kits for students and first-time renters in India.",
       },
-      { property: "og:title", content: "Dropnest — Move in. Done." },
+      { property: "og:title", content: "Basera — Move in. Done." },
       {
         property: "og:description",
         content: "Move-in kits for students and first-time renters in India.",
@@ -102,7 +103,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -138,6 +139,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <DropnestProvider>
+        <ScrollProgress />
         <Outlet />
         <DropnestOverlays />
       </DropnestProvider>
