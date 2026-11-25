@@ -50,11 +50,12 @@ import {
   topKitInCart,
   type City,
   type KitId,
+  brandMarketPrice,
 } from "@/lib/dropnest";
 
 const PROMISES = [
   { icon: Truck, title: "Free bulky shipping", text: "Straight to your hostel or PG gate." },
-  { icon: Banknote, title: "₹0 COD fee", text: "Pay cash or UPI when the box arrives." },
+  { icon: Banknote, title: "Cash on delivery", text: "Pay cash or UPI when the box arrives." },
   { icon: RefreshCw, title: "7-day replacement", text: "Anything damaged is swapped free." },
   { icon: Zap, title: "Lands 24h early", text: "Waiting for you before move-in day." },
 ];
@@ -230,7 +231,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
               {brandPicks.length > 0 && (
                 <div className="mt-4 rounded-xl bg-primary-soft/60 px-4 py-3 text-sm">
                   <p className="font-bold">
-                    Your brand picks: +{formatINR(pricePerKit - kit.price)} per kit
+                    Your brand picks
                   </p>
                   <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
                     {brandPicks.map((p) => (
@@ -238,7 +239,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                         <span className="truncate">
                           {p.brand.name} · {p.item.name.split(" (")[0]}
                         </span>
-                        <span className="shrink-0 font-semibold">+{formatINR(p.brand.upcharge)}</span>
+                        <span className="shrink-0 font-semibold">{formatINR(brandMarketPrice(p.item.id, p.brand))}</span>
                       </li>
                     ))}
                   </ul>

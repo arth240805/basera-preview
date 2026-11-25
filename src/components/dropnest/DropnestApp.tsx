@@ -1710,10 +1710,6 @@ function PriceSummary({ cart }: { cart: CartState }) {
         <dt className="text-muted-foreground">Bulky Shipping</dt>
         <dd className="font-bold text-success">FREE</dd>
       </div>
-      <div className="flex justify-between">
-        <dt className="text-muted-foreground">COD fee</dt>
-        <dd className="font-semibold">{formatINR(t.codFee)}</dd>
-      </div>
       {t.savings > 0 && (
         <div className="flex justify-between rounded-lg bg-success-soft px-2 py-1.5 text-success-ink">
           <dt className="font-semibold">You save</dt>
@@ -2746,7 +2742,7 @@ function CheckoutDialog({
                     <div className="text-sm">
                       <p className="font-bold">Pay {formatINR(t.total)} when the box arrives</p>
                       <p className="mt-1 text-muted-foreground">
-                        Cash or UPI to the delivery partner. COD fee: ₹0. The warden can pay on your
+                        Cash or UPI to the delivery partner. The warden can pay on your
                         behalf.
                       </p>
                     </div>

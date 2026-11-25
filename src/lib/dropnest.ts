@@ -518,6 +518,11 @@ export function setItemBrand(cart: CartState, itemId: string, brandId: string): 
 }
 
 /** Price of one more unit of an item, in the picked brand. */
+/** Market price of one unit of an item in a given brand. */
+export function brandMarketPrice(itemId: string, brand: ItemBrand): number {
+  return (ITEMS_BY_ID[itemId]?.extraPrice ?? 0) + brand.upcharge;
+}
+
 export function itemUnitPrice(cart: CartState, itemId: string): number {
   const item = ITEMS_BY_ID[itemId];
   return item ? item.extraPrice + brandUpcharge(cart, itemId) : 0;

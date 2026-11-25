@@ -3,7 +3,7 @@ import { Check } from "lucide-react";
 import { brandPhoto } from "@/components/dropnest/itemPhotos";
 import { useDropnest } from "@/components/dropnest/store";
 import { cn } from "@/lib/utils";
-import { formatINR, itemBrandOptions, selectedBrand } from "@/lib/dropnest";
+import { brandMarketPrice, formatINR, itemBrandOptions, selectedBrand } from "@/lib/dropnest";
 
 /**
  * Brand choices for one item, each with its own photo and price. The first
@@ -41,7 +41,7 @@ export function BrandPicker({
               type="button"
               role="radio"
               aria-checked={on}
-              aria-label={`${o.name}, ${i === 0 ? baseLabel : `+${formatINR(o.upcharge)}`}`}
+              aria-label={`${o.name}, ${formatINR(brandMarketPrice(itemId, o))}${i === 0 ? `, ${baseLabel}` : ""}`}
               onClick={() => setBrand(itemId, o.id)}
               className={cn(
                 "relative flex flex-col items-center rounded-xl border p-1.5 text-center transition-[border-color,background-color,box-shadow]",
@@ -69,10 +69,11 @@ export function BrandPicker({
               <span
                 className={cn(
                   "text-[10px] font-semibold",
-                  i === 0 ? "text-success-ink" : "text-muted-foreground",
+                  "text-foreground",
                 )}
               >
-                {i === 0 ? baseLabel : `+${formatINR(o.upcharge)}`}
+                {formatINR(brandMarketPrice(itemId, o))}
+                {i === 0 && <span className="block text-[9px] text-success-ink">{baseLabel}</span>}
               </span>
             </button>
           );
