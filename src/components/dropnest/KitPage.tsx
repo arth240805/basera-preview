@@ -27,6 +27,7 @@ import {
 import { BrandPicker } from "@/components/dropnest/BrandPicker";
 import { pickedPhoto } from "@/components/dropnest/itemPhotos";
 import { useDropnest } from "@/components/dropnest/store";
+import { Magnetic, Parallax, Reveal, Stagger } from "@/components/dropnest/motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -116,7 +117,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
           </nav>
 
           <section className="grid gap-10 pb-14 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
-            <div className="self-start rounded-3xl border border-border bg-card p-4 shadow-soft sm:p-6">
+            <Parallax speed={0.025} className="self-start rounded-3xl border border-border bg-card p-4 shadow-soft sm:p-6">
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {mosaic.map((it, i) => (
                   <img
@@ -133,12 +134,12 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
               <p className="mt-4 flex items-center justify-center gap-2 text-sm font-semibold text-muted-foreground">
                 <Icon className="size-4 text-primary" /> {kit.items.length} items · packed in 1 box
               </p>
-            </div>
+            </Parallax>
 
-            <div>
+            <div className="stagger-load">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold uppercase tracking-wider text-secondary-foreground">
-                  Official Dropnest Kit
+                  Official Basera Kit
                 </span>
                 {kit.popular && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-highlight px-3 py-1 text-xs font-bold text-highlight-foreground">
@@ -219,9 +220,11 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                     <ShoppingBag /> Add Kit to Cart
                   </Button>
                 )}
-                <Button variant="hero" size="xl" className="flex-1" onClick={() => buyNow(kitId)}>
+                <Magnetic className="flex flex-1" strength={0.15}>
+                <Button variant="hero" size="xl" className="w-full" onClick={() => buyNow(kitId)}>
                   Buy Now
                 </Button>
+                </Magnetic>
               </div>
 
               {brandPicks.length > 0 && (
@@ -257,11 +260,11 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                 </div>
               )}
 
-              <ul className="mt-6 grid grid-cols-2 gap-3">
+              <Stagger as="ul" className="mt-6 grid grid-cols-2 gap-3">
                 {PROMISES.map((p) => (
                   <li
                     key={p.title}
-                    className="flex items-start gap-2.5 rounded-xl border border-border bg-card p-3"
+                    className="flex items-start gap-2.5 rounded-xl border border-border bg-card p-3 transition-transform duration-300 hover:-translate-y-1"
                   >
                     <p.icon className="mt-0.5 size-4 shrink-0 text-success" />
                     <span>
@@ -270,7 +273,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                     </span>
                   </li>
                 ))}
-              </ul>
+              </Stagger>
             </div>
           </section>
 
@@ -281,7 +284,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                 to="/kits/$kitId"
                 params={{ kitId: id }}
                 className={cn(
-                  "rounded-full border px-4 py-2 text-sm font-semibold",
+                  "rounded-full border px-4 py-2 text-sm font-semibold transition-[background-color,border-color,translate] duration-300 hover:-translate-y-0.5",
                   id === kitId
                     ? "border-primary bg-primary-soft text-accent-foreground"
                     : "border-border bg-card hover:border-primary/40",
@@ -300,7 +303,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
             </p>
             {groups.map((g) => (
               <div key={g.title} className="mt-10">
-                <div className="flex items-baseline justify-between gap-4 border-b border-border pb-3">
+                <Reveal className="flex items-baseline justify-between gap-4 border-b border-border pb-3">
                   <div>
                     <h3 className="text-xl font-extrabold">{g.title}</h3>
                     <p className="text-sm text-muted-foreground">{g.text}</p>
@@ -308,15 +311,15 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                   <span className="shrink-0 text-sm font-semibold text-muted-foreground">
                     {g.items.length} items
                   </span>
-                </div>
-                <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                </Reveal>
+                <Stagger as="ul" className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {g.items.map((it) => {
                     const lineQty = itemLineQty(cart, kitId, it.id);
                     const unit = itemUnitPrice(cart, it.id);
                     return (
                       <li
                         key={it.id}
-                        className="reveal group flex flex-col rounded-2xl border border-border bg-card p-3 shadow-soft transition-[box-shadow,translate] duration-300 hover:-translate-y-1 hover:shadow-lift"
+                        className="group flex flex-col rounded-2xl border border-border bg-card p-3 shadow-soft transition-[box-shadow,translate] duration-300 hover:-translate-y-1 hover:shadow-lift"
                       >
                         <div className="overflow-hidden rounded-xl">
                           <img
@@ -353,7 +356,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                       </li>
                     );
                   })}
-                </ul>
+                </Stagger>
               </div>
             ))}
           </section>
@@ -370,7 +373,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                 Want a few things from the bigger kits without upgrading? Add any of these{" "}
                 {upgrades.length} items to your {kit.name}, one at a time.
               </p>
-              <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <Stagger as="ul" className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {upgrades.map((it) => {
                   const from = itemSourceKit(it.id);
                   const covered = coveredBy(it.id);
@@ -379,7 +382,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                     <li
                       key={it.id}
                       className={cn(
-                        "group flex flex-col rounded-2xl border bg-card p-3 shadow-soft transition-shadow hover:shadow-lift",
+                        "group flex flex-col rounded-2xl border bg-card p-3 shadow-soft transition-[box-shadow,translate] duration-300 hover:-translate-y-1 hover:shadow-lift",
                         q > 0 && !covered
                           ? "border-success ring-1 ring-success/40"
                           : "border-border",
@@ -425,7 +428,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                     </li>
                   );
                 })}
-              </ul>
+              </Stagger>
             </section>
           ) : (
             <section className="border-t border-border py-10">

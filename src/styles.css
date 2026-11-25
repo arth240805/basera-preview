@@ -216,7 +216,7 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
   }
 }
 
@@ -676,7 +676,6 @@
       transform: rotateY(180deg);
     }
   }
-  .flip-card:focus-visible .flip-inner,
   .flip-card[aria-pressed="true"] .flip-inner {
     transform: rotateY(180deg);
   }
@@ -698,6 +697,26 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .reveal-up[data-motion],
+  .stagger[data-motion] > * {
+    opacity: 1 !important;
+  }
+  .tilt,
+  .magnetic,
+  .parallax {
+    transform: none !important;
+  }
+  .flip-card .flip-inner,
+  .flip-card:hover .flip-inner,
+  .flip-card[aria-pressed="true"] .flip-inner {
+    transform: none;
+  }
+  .flip-card[aria-pressed="true"] .flip-face:not(.flip-back) {
+    visibility: hidden;
+  }
+  .flip-card[aria-pressed="true"] .flip-back {
+    transform: none;
+  }
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {

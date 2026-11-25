@@ -36,3 +36,4 @@ use the editor.
 - Item photos are local images in `src/assets/items/<item-id>.jpg`, and every brand option has its own real store photo in `src/assets/items/brands/<item-id>--<brand-id>.jpg`, both mapped in `itemPhotos.ts`. Why: each brand shows its actual product; the item photo is only a fallback.
 - Dates shown to users are computed only inside drawers/dialogs (not SSR'd). Why: avoids server/browser timezone hydration mismatches.
 - Decorative motion is CSS keyframes/utilities in `src/styles.css` plus aria-hidden pieces in `src/components/dropnest/motion.tsx` (no animation library), all disabled under prefers-reduced-motion. Why: keeps the bundle light and accessible, and SSR renders final values.
+- Informational flip tiles use the shared Button-based FlipCard with explicit pressed state; reduced motion switches faces without rotation. Why: the same content remains accessible by mouse, keyboard, and touch.

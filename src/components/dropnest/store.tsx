@@ -162,7 +162,7 @@ export function useGoToSection() {
   const navigate = useNavigate();
   return (id: string) => {
     const el = typeof document !== "undefined" ? document.getElementById(id) : null;
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (el) el.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
     else void navigate({ to: "/", hash: id });
   };
 }

@@ -14,6 +14,7 @@ import { Building2, Package, PackageCheck, Truck } from "lucide-react";
 import { ITEM_PHOTOS } from "@/components/dropnest/itemPhotos";
 import { ITEMS_BY_ID } from "@/lib/dropnest";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 function prefersReducedMotion() {
   return (
@@ -433,16 +434,21 @@ export function ScrollProgress() {
   );
 }
 
-/** A slowly morphing, softly blurred colour blob for section backdrops. */
-export function MorphBlob({ className, dark = false }: { className?: string; dark?: boolean }) {
+/** A flippable informational tile, usable by pointer, keyboard, or touch. */
+export function FlipCard({ front, back, label }: { front: ReactNode; back: ReactNode; label: string }) {
+  const [flipped, setFlipped] = useState(false);
   return (
-    <div
-      aria-hidden
-      className={cn(
-        "morph-blob pointer-events-none absolute blur-2xl",
-        dark ? "bg-gradient-flow opacity-25" : "bg-soft-flow opacity-90",
-        className,
-      )}
-    />
+    <Button
+      variant="ghost"
+      aria-label={label}
+      aria-pressed={flipped}
+      onClick={() => setFlipped((value) => !value)}
+      className="flip-card block h-full min-h-60 w-full whitespace-normal rounded-3xl p-0 text-left hover:bg-transparent"
+    >
+      <span className="flip-inner">
+        <span aria-hidden className="flip-face block rounded-3xl border border-border bg-card p-6 shadow-soft">{front}</span>
+        <span aria-hidden className="flip-face flip-back flex flex-col justify-center rounded-3xl border border-primary bg-primary p-6 text-primary-foreground shadow-lift">{back}</span>
+      </span>
+    </Button>
   );
 }

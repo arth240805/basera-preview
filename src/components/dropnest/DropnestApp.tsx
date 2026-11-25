@@ -50,9 +50,9 @@ import {
   DeliveryRoute,
   DriftingBoxes,
   FloatingItem,
+  FlipCard,
   ItemMarquee,
   Magnetic,
-  MorphBlob,
   Parallax,
   Reveal,
   Stagger,
@@ -137,7 +137,8 @@ export const selectClass =
 const fieldClass = "h-11 rounded-xl bg-card";
 
 function scrollToId(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.getElementById(id)?.scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" });
 }
 
 function toDateInput(d: Date) {
@@ -490,7 +491,6 @@ function Hero({
       <Parallax speed={-0.15} aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-grid" />
       </Parallax>
-      <MorphBlob className="-left-40 top-24 size-[26rem] opacity-60" />
       <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-14 pt-6 md:pt-16 lg:grid-cols-[1.05fr_1fr] lg:gap-14 lg:pb-20">
         <div className="stagger-load">
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-primary-soft px-3 py-1 text-xs font-semibold text-accent-foreground transition-transform duration-300 hover:scale-105">
@@ -571,7 +571,6 @@ function Hero({
         </div>
 
         <div className="relative animate-fade-up [animation-delay:200ms]">
-          <MorphBlob className="-inset-8 -z-0 opacity-80" />
           <Parallax speed={0.06} className="relative">
             <div className="overflow-hidden rounded-[2rem] border border-border shadow-lift">
               <img
@@ -1196,23 +1195,29 @@ function HowItWorks() {
     <section id="how" className="scroll-mt-20 bg-secondary/60 px-4 py-20">
       <SectionHeading eyebrow="How it works" title="From checkout to cosy in four steps." />
       <DeliveryRoute />
-      <ol className="mx-auto mt-12 grid max-w-6xl gap-5 sm:grid-cols-2 lg:mt-6 lg:grid-cols-4">
+      <Stagger as="ol" className="mx-auto mt-12 grid max-w-6xl gap-5 sm:grid-cols-2 lg:mt-6 lg:grid-cols-4">
         {steps.map((s, i) => (
-          <li
-            key={s.title}
-            className="reveal rounded-3xl border border-border bg-card p-6 shadow-soft transition-[box-shadow,translate] duration-300 hover:-translate-y-1 hover:shadow-lift"
-          >
-            <div className="flex items-center justify-between">
-              <span className="grid size-11 place-items-center rounded-2xl bg-primary-soft text-primary">
-                <s.icon className="size-5" />
-              </span>
-              <span className="font-display text-4xl font-extrabold text-border">0{i + 1}</span>
-            </div>
-            <h3 className="mt-5 text-lg font-bold">{s.title}</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{s.text}</p>
+          <li key={s.title}>
+            <FlipCard
+              label={`Step ${i + 1}: ${s.title}. ${s.text}`}
+              front={<>
+                <span className="flex items-center justify-between">
+                  <span className="grid size-11 place-items-center rounded-2xl bg-primary-soft text-primary"><s.icon className="size-5" /></span>
+                  <span className="font-display text-4xl font-extrabold text-border">0{i + 1}</span>
+                </span>
+                <span className="mt-5 block font-display text-lg font-bold">{s.title}</span>
+                <span className="mt-1 block text-sm text-muted-foreground">{s.text}</span>
+              </>}
+              back={<>
+                <s.icon className="mb-5 size-8 text-highlight" />
+                <span className="font-display text-lg font-bold">{s.title}</span>
+                <span className="mt-3 text-sm leading-relaxed">{s.text}</span>
+                <span className="mt-5 text-xs font-semibold text-highlight">Basera · Move in. Done.</span>
+              </>}
+            />
           </li>
         ))}
-      </ol>
+      </Stagger>
     </section>
   );
 }
@@ -1234,7 +1239,7 @@ function ChecklistSection({
   return (
     <section id="checklist" className="scroll-mt-20 px-4 py-20">
       <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="lg:sticky lg:top-24 lg:self-start">
+        <Reveal className="lg:sticky lg:top-24 lg:self-start">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
             Free move-in checklist
           </p>
@@ -1286,16 +1291,16 @@ function ChecklistSection({
               <MessageCircle /> Send My Checklist & Packing Guide to WhatsApp
             </Button>
           </div>
-        </div>
+        </Reveal>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <Stagger className="grid gap-4 sm:grid-cols-2">
           {CHECKLIST_CATEGORIES.map((cat) => {
             const items = CHECKLIST.filter((c) => c.category === cat);
             const done = items.filter((i) => checked.has(i.id)).length;
             return (
               <fieldset
                 key={cat}
-                className="rounded-3xl border border-border bg-card p-5 shadow-soft"
+                className="rounded-3xl border border-border bg-card p-5 shadow-soft transition-shadow duration-300 hover:shadow-lift"
               >
                 <legend className="sr-only">{cat}</legend>
                 <div className="mb-3 flex items-center justify-between">
@@ -1317,7 +1322,7 @@ function ChecklistSection({
                         <label
                           htmlFor={`chk-${item.id}`}
                           className={cn(
-                            "flex cursor-pointer items-center gap-3 rounded-xl px-2 py-2 text-sm transition-colors hover:bg-muted",
+                            "flex cursor-pointer items-center gap-3 rounded-xl px-2 py-2 text-sm transition-[background-color,translate] duration-300 hover:translate-x-1 hover:bg-muted",
                             on && "text-muted-foreground line-through",
                           )}
                         >
@@ -1336,7 +1341,7 @@ function ChecklistSection({
               </fieldset>
             );
           })}
-        </div>
+        </Stagger>
       </div>
     </section>
   );
@@ -1507,11 +1512,11 @@ function B2BSection() {
   return (
     <section
       id="b2b"
-      className="relative scroll-mt-20 overflow-hidden bg-ink px-4 py-20 text-ink-foreground"
+      className="relative scroll-mt-20 overflow-hidden bg-ink-flow px-4 py-20 text-ink-foreground"
     >
       <DriftingBoxes />
       <div className="relative mx-auto grid max-w-6xl gap-10 lg:grid-cols-2 lg:items-center">
-        <div>
+        <Reveal>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-highlight">
             For PG owners & wardens
           </p>
@@ -1522,7 +1527,7 @@ function B2BSection() {
             Order a sample kit to inspect, or let us fit out every room before the batch arrives.
             Popular with coaching hostels in Kota, student PGs in Pune and co-living in Delhi NCR.
           </p>
-          <ul className="mt-8 space-y-3 text-sm">
+          <Stagger as="ul" className="mt-8 space-y-3 text-sm">
             {[
               "Bulk pricing and GST invoice",
               "Room-wise delivery and setup on request",
@@ -1535,10 +1540,10 @@ function B2BSection() {
                 {t}
               </li>
             ))}
-          </ul>
-        </div>
+          </Stagger>
+        </Reveal>
 
-        <div className="rounded-3xl bg-card p-6 text-card-foreground shadow-lift sm:p-8">
+        <Reveal className="rounded-3xl bg-card p-6 text-card-foreground shadow-lift sm:p-8">
           {ref ? (
             <div className="py-8 text-center">
               <span className="mx-auto grid size-14 animate-pop place-items-center rounded-full bg-success-soft text-success">
@@ -1671,7 +1676,7 @@ function B2BSection() {
               </Button>
             </form>
           )}
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -1680,13 +1685,13 @@ function B2BSection() {
 export function Footer() {
   return (
     <footer className="border-t border-border px-4 py-10 md:pb-28">
-      <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+      <Stagger className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
         <Logo />
         <p className="text-sm text-muted-foreground">
           Delivering to Kota · Pune · Delhi NCR · Bengaluru · Hyderabad · Mumbai and beyond.
         </p>
-        <p className="text-xs text-muted-foreground">© {2026} Dropnest. Move in. Done.</p>
-      </div>
+        <p className="shrink-0 text-xs text-muted-foreground">© {2026} Basera. Move in. Done.</p>
+      </Stagger>
     </footer>
   );
 }
