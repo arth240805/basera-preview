@@ -9,6 +9,7 @@ import {
   setItemQty,
   setItemAddonQty,
   setItemBrand,
+  setMoreBrandQty,
   ITEMS_BY_ID,
   type AddonId,
   type CartState,
@@ -43,6 +44,8 @@ interface DropnestStore {
   setItemAddon: (itemId: string, qty: number, kitId?: KitId) => void;
   /** Pick which brand of an item to get; applies everywhere that item appears. */
   setBrand: (itemId: string, brandId: string) => void;
+  /** Also get units of another brand of the same item (0 removes them). */
+  setMoreBrand: (itemId: string, brandId: string, qty: number, kitId?: KitId) => void;
   applyRecommendation: (kitId: KitId, addons: AddonId[]) => void;
   clearCart: () => void;
 }
@@ -133,6 +136,8 @@ export function DropnestProvider({ children }: { children: ReactNode }) {
         addons: c.addons.includes(id) ? c.addons.filter((a) => a !== id) : [...c.addons, id],
       })),
     setBrand: (itemId, brandId) => setCart((c) => setItemBrand(c, itemId, brandId)),
+    setMoreBrand: (itemId, brandId, qty, kitId) =>
+      setCart((c) => setMoreBrandQty(c, itemId, brandId, qty, kitId)),
     applyRecommendation: (kitId, addons) => {
       setCart((c) => ({
         ...c,

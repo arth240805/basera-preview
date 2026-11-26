@@ -44,7 +44,7 @@ import {
 } from "lucide-react";
 
 import heroImage from "@/assets/dropnest-room.jpg";
-import { ITEM_PHOTOS, pickedPhoto } from "@/components/dropnest/itemPhotos";
+import { ITEM_PHOTOS, brandPhoto, pickedPhoto } from "@/components/dropnest/itemPhotos";
 import {
   CountUp,
   DeliveryRoute,
@@ -99,6 +99,7 @@ import {
   itemLineQty,
   itemUnitPrice,
   kitBrandLines,
+  moreBrandLines,
   kitExtraLines,
   kitLineTotal,
   selectedBrand,
@@ -1911,6 +1912,8 @@ function CartDrawer({
                 );
               })}
 
+              <ExtraBrandsInCart />
+
               <div>
                 <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Add-ons
@@ -1963,6 +1966,48 @@ function CartDrawer({
         )}
       </SheetContent>
     </Sheet>
+  );
+}
+
+/** Extra brands of an item the customer added on top of their main pick. */
+function ExtraBrandsInCart() {
+  const { cart, setMoreBrand } = useDropnest();
+  const lines = moreBrandLines(cart);
+  if (!lines.length) return null;
+  return (
+    <div>
+      <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+        Extra brands
+      </p>
+      <ul className="space-y-2">
+        {lines.map((l) => (
+          <li
+            key={`${l.item.id}-${l.brand.id}`}
+            className="flex items-center gap-3 rounded-xl border border-border px-3 py-2 text-sm"
+          >
+            <img
+              src={brandPhoto(l.item.id, l.brand.id)}
+              alt=""
+              width={40}
+              height={40}
+              className="size-10 rounded-lg object-cover"
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-semibold">{l.brand.name}</span>
+              <span className="block truncate text-xs text-muted-foreground">
+                {l.item.name.split(" (")[0]}
+              </span>
+            </span>
+            <QtyStepper
+              qty={l.qty}
+              onChange={(q) => setMoreBrand(l.item.id, l.brand.id, q)}
+              label={`${l.brand.name} ${l.item.name}`}
+            />
+            <span className="w-16 shrink-0 text-right font-bold">{formatINR(l.amount)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -2376,6 +2421,7 @@ function CheckoutDialog({
         }),
         addonNames: [
           ...itemAddonLines(cart).map((l) => `${l.item.name.split(" (")[0]} × ${l.qty}`),
+          ...moreBrandLines(cart).map((l) => `${l.brand.name} ${l.item.name.split(" (")[0]} × ${l.qty}`),
           ...cart.addons.map((a) => ADDONS[a].name),
         ],
         name: d.name,

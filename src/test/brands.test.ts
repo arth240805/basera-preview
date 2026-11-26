@@ -62,3 +62,18 @@ describe("Brand choices per item", () => {
     expect(cartTotals(cart).total).toBe(2799);
   });
 });
+
+import { cartTotals as _ct, setMoreBrandQty as _smb, itemBrandOptions as _opts, brandMarketPrice as _bmp } from "@/lib/dropnest";
+
+describe("extra brands of the same item", () => {
+  const base = { kits: { basic: 1 }, addons: [] };
+  it("adds 2 units of a second soap brand at its full price", () => {
+    const second = _opts("hygiene-kit")[1]!;
+    const withExtra = _smb(base, "hygiene-kit", second.id, 2);
+    expect(_ct(withExtra).total - _ct(base).total).toBe(2 * _bmp("hygiene-kit", second));
+  });
+  it("setting the extra brand to 0 removes its cost", () => {
+    const second = _opts("hygiene-kit")[1]!;
+    expect(_ct(_smb(_smb(base, "hygiene-kit", second.id, 2), "hygiene-kit", second.id, 0)).total).toBe(_ct(base).total);
+  });
+});

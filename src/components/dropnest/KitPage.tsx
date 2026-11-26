@@ -334,7 +334,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                         </div>
                         <p className="mt-3 font-semibold leading-snug">{it.name}</p>
                         <div className="flex-1">
-                          <BrandPicker itemId={it.id} itemName={it.name} />
+                          <BrandPicker itemId={it.id} itemName={it.name} kitId={kitId} />
                         </div>
                         <div className="mt-3 flex items-center justify-between gap-2">
                           <span className="text-xs text-muted-foreground">
@@ -404,7 +404,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                       </div>
                       <p className="mt-3 font-semibold leading-snug">{it.name}</p>
                       <div className="flex-1">
-                        {!covered && <BrandPicker itemId={it.id} itemName={it.name} baseLabel="Base" />}
+                        {!covered && <BrandPicker itemId={it.id} itemName={it.name} baseLabel="Base" kitId={kitId} />}
                       </div>
                       <div className="mt-3 flex items-center justify-between gap-2">
                         <span className="text-xs text-muted-foreground">

@@ -484,6 +484,8 @@ export interface CartState {
   items?: Record<string, number>;
   /** Brand picked per item id; missing means the included (first) brand. */
   brands?: Record<string, string>;
+  /** Extra units in other brands too, per item id then brand id (e.g. Lifebuoy and Patanjali soap). */
+  moreBrands?: Record<string, Record<string, number>>;
 }
 
 export const ITEMS_BY_ID: Record<string, KitItem> = Object.fromEntries(
@@ -658,6 +660,50 @@ export function itemAddonLines(cart: CartState): { item: KitItem; qty: number; a
     .filter((l) => l.qty > 0);
 }
 
+/** How many extra units of a second brand of an item the customer added. */
+export function moreBrandQty(cart: CartState, itemId: string, brandId: string): number {
+  return cart.moreBrands?.[itemId]?.[brandId] ?? 0;
+}
+
+/**
+ * Add units of another brand of an item alongside the main pick (0 removes it).
+ * If no kit is in the cart yet, `kitId` is added so the extra brand rides along.
+ */
+export function setMoreBrandQty(
+  cart: CartState,
+  itemId: string,
+  brandId: string,
+  qty: number,
+  kitId?: KitId,
+): CartState {
+  if (!itemBrandOptions(itemId).some((o) => o.id === brandId)) return cart;
+  const n = Math.max(0, Math.floor(qty));
+  const forItem = { ...(cart.moreBrands?.[itemId] ?? {}) };
+  if (n === 0) delete forItem[brandId];
+  else forItem[brandId] = n;
+  const moreBrands = { ...(cart.moreBrands ?? {}) };
+  if (Object.keys(forItem).length) moreBrands[itemId] = forItem;
+  else delete moreBrands[itemId];
+  const kits = n > 0 && kitId && !topKitInCart(cart) ? { ...cart.kits, [kitId]: 1 } : cart.kits;
+  return { ...cart, kits, moreBrands };
+}
+
+/** Extra-brand lines in the cart, each charged at that brand's full market price. */
+export function moreBrandLines(
+  cart: CartState,
+): { item: KitItem; brand: ItemBrand; qty: number; amount: number }[] {
+  const lines: { item: KitItem; brand: ItemBrand; qty: number; amount: number }[] = [];
+  for (const [itemId, byBrand] of Object.entries(cart.moreBrands ?? {})) {
+    const item = ITEMS_BY_ID[itemId];
+    if (!item) continue;
+    for (const brand of itemBrandOptions(itemId)) {
+      const qty = byBrand[brand.id] ?? 0;
+      if (qty > 0) lines.push({ item, brand, qty, amount: qty * brandMarketPrice(itemId, brand) });
+    }
+  }
+  return lines;
+}
+
 export interface CartTotals {
   itemCount: number;
   subtotal: number;
@@ -689,6 +735,11 @@ export function cartTotals(cart: CartState): CartTotals {
     }
   }
   for (const line of itemAddonLines(cart)) {
+    subtotal += line.amount;
+    mrp += line.amount;
+    itemCount += line.qty;
+  }
+  for (const line of moreBrandLines(cart)) {
     subtotal += line.amount;
     mrp += line.amount;
     itemCount += line.qty;
