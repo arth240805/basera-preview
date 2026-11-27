@@ -1,3 +1,4 @@
+import { CityCombobox } from "@/components/dropnest/CityCombobox";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { format, parseISO } from "date-fns";
@@ -481,7 +482,7 @@ function Hero({
 }: {
   view: View;
   city: City;
-  onCity: (c: City) => void;
+  onCity: (name: string) => void;
   onExplore: () => void;
   onQuiz: () => void;
 }) {
@@ -517,21 +518,7 @@ function Hero({
               <MapPin className="size-3.5" /> Where are you moving?
             </Label>
             <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-              <div className="relative sm:w-44">
-                <select
-                  id="hero-city"
-                  value={city}
-                  onChange={(e) => onCity(e.target.value as City)}
-                  className={selectClass}
-                >
-                  {CITIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              </div>
+              <CityCombobox id="hero-city" onChange={onCity} className="sm:w-56" />
               <span
                 key={city}
                 aria-live="polite"
@@ -1625,19 +1612,7 @@ function B2BSection() {
                   />
                 </Field>
                 <Field label="City" htmlFor="b2b-city">
-                  <div className="relative">
-                    <select
-                      id="b2b-city"
-                      className={selectClass}
-                      value={form.city}
-                      onChange={(e) => set("city", e.target.value)}
-                    >
-                      {CITIES.map((c) => (
-                        <option key={c}>{c}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                  </div>
+                  <CityCombobox id="b2b-city" value={form.city} onChange={(v) => set("city", v)} />
                 </Field>
                 <Field label="Number of rooms" error={errors["rooms"]} htmlFor="b2b-rooms">
                   <Input
@@ -2349,7 +2324,7 @@ function CheckoutDialog({
   onOpenChange: (o: boolean) => void;
   cart: CartState;
   city: City;
-  onCity: (c: City) => void;
+  onCity: (name: string) => void;
   moveIn: string;
   onMoveIn: (v: string) => void;
   onPlaced: () => void;
@@ -2572,19 +2547,7 @@ function CheckoutDialog({
                   />
                 </div>
                 <Field label="City" htmlFor="co-city">
-                  <div className="relative">
-                    <select
-                      id="co-city"
-                      className={selectClass}
-                      value={city}
-                      onChange={(e) => onCity(e.target.value as City)}
-                    >
-                      {CITIES.map((c) => (
-                        <option key={c}>{c}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                  </div>
+                  <CityCombobox id="co-city" onChange={onCity} />
                 </Field>
                 <TextField
                   id="co-pin"

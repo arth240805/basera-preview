@@ -1,3 +1,4 @@
+import { cityZone } from "@/lib/cities";
 import { createContext, useContext, useMemo, useState, type Context, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -24,7 +25,10 @@ interface DropnestStore {
   view: View;
   toggleView: () => void;
   city: City;
-  setCity: (c: City) => void;
+  /** City name the customer typed, e.g. Indore. */
+  cityName: string;
+  /** Set the typed city; the delivery zone follows from it. */
+  setCity: (name: string) => void;
   cart: CartState;
   totals: CartTotals;
   moveIn: string;
@@ -62,7 +66,8 @@ const EMPTY_CART: CartState = { kits: {}, addons: [], extras: {}, items: {} };
 /** Shared, in-memory shopping state so the cart follows the customer between pages. */
 export function DropnestProvider({ children }: { children: ReactNode }) {
   const [view, setView] = useState<View>("student");
-  const [city, setCity] = useState<City>("Kota");
+  const [cityName, setCityName] = useState("Kota");
+  const city: City = cityZone(cityName);
   const [cart, setCart] = useState<CartState>(EMPTY_CART);
   const [moveIn, setMoveIn] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
@@ -84,7 +89,8 @@ export function DropnestProvider({ children }: { children: ReactNode }) {
     view,
     toggleView: () => setView((v) => (v === "student" ? "parent" : "student")),
     city,
-    setCity,
+    cityName,
+    setCity: setCityName,
     cart,
     totals,
     moveIn,

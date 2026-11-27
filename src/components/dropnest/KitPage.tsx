@@ -1,3 +1,4 @@
+import { CityCombobox } from "@/components/dropnest/CityCombobox";
 import { Link } from "@tanstack/react-router";
 import {
   Banknote,
@@ -180,21 +181,7 @@ export default function KitPage({ kitId }: { kitId: KitId }) {
                   <MapPin className="size-3.5" /> Delivering to
                 </label>
                 <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <div className="relative sm:w-44">
-                    <select
-                      id="kit-city"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value as City)}
-                      className={selectClass}
-                    >
-                      {CITIES.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                  </div>
+                  <CityCombobox id="kit-city" className="sm:w-56" />
                   <span
                     className={cn(
                       "rounded-lg px-3 py-2 text-xs font-semibold sm:text-sm",
