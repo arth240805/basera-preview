@@ -1,6 +1,6 @@
 # Roadmap
-
-- [x] Every kit item offers the well-known brands sold online (3–8 each), user picks one
-- [x] Each brand option shows a real product photo of that brand's item
-- [x] Finish Basera branding and motion across the home and kit pages
-- [x] Verify shopping flow, desktop/mobile layout, and reduced-motion behavior
+- [ ] Phase 1: Cloud, catalogue tables + seed, stock-aware brands, email/password accounts
+- [ ] Phase 2: saved cart, pincode check, promo codes (server totals)
+- [ ] Phase 3: Razorpay checkout, orders, invoices, My Orders, returns
+- [ ] Phase 4: /admin panel
+- [ ] Phase 5: notifications (email, WhatsApp hook, abandoned cart)
